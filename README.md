@@ -20,8 +20,9 @@ Add an end to end test performing the following:
 
 ## Tools
 
-1. .NET 8.0.204
-2. Playwright with NUnit
+1. dotnet cli with .NET 8.0.204
+2. Playwright with NUnit version 1.46.0
+3. Powershell version 7.4.5
 
 # Getting Started
 
