@@ -32,3 +32,13 @@ Clone the repo with
 git clone https://github.com/sintutu/organic-shop-training-project.git
 ```
 
+# Guidance
+
+Follow the thinking behind this test project in [notes.md](./docs/notes.md).
+
+# Build and test
+
+```csharp
+dotnet build .\OrganicShopTrainingProject.sln
+dotnet test
+```
