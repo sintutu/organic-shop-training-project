@@ -138,3 +138,16 @@ What this did was find the table, find the right product in the table, and find 
 
 ![Minus button for cheese](minus-button-for-cheese.png)
 
+## `TestBase`
+
+`TestBase` exists as a base for the class for all end-to-end tests. In this case there is just the one but the principle is the same.
+
+The responsibility here is to hide the implementation details from the test class itself, while making available to the test class the objects the test class needs. It is in this spirit that most elements in there are `protected`. The intent is that child classes of `TestBase` are the only ones that can access those `protected` variables and methods.
+
+The tests need a browser tab, so the `OneTimeSetup` creates one. The tests need a way to assert, so this class creates an instance of `PlaywrightTest` to make that available. The tests need to know about the PageObjects so it creates them. The test needs a constant BaseUri so it creates it.
+
+What is also there are the links in the navigation bar. As each page contains the navigation bar, it makes sense that the test base holds the ability to interact with them.
+
+## `EndToEndTests`
+
+This class contains the tests. This led to renaming UnitTest1.cs to EndToEndTests.cs. The tests are designed to be easy to read. This is why `TestBase` exists - to hide implementation detail from the `EndToEndTests`. Now the focus can be specifically on this test case.

@@ -34,7 +34,6 @@ public abstract class TestBase
             .LaunchAsync(new BrowserTypeLaunchOptions
             {
                 Headless = false,
-                Timeout = 60000 // Increase timeout to 60 seconds
             });
         var context = await browser.NewContextAsync();
         Page = await context.NewPageAsync();
