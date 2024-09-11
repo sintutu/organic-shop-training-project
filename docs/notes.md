@@ -65,3 +65,76 @@ The command has the below installed:
 
 Check that the build is still fine with `dotnet test`
 
+## Add Page Objects
+
+The Page Object Model is an [encouraged test practice](https://www.selenium.dev/documentation/test_practices/encouraged/page_object_models/ (Selenium's Java based POM guidance)) on [Selenium.dev](https://www.selenium.dev/). Playwright also has its own [dotnet guidance](https://playwright.dev/dotnet/docs/pom (Playwright's dotnet guidance on implementing page objects for tests)).
+
+Picking the locator is often easy with `AriaRole`. 
+
+### Using `AriaRole`?
+
+Mozilla Developer Network (MDN) explains in https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA
+
+> Accessible Rich Internet Applications (ARIA) is a set of roles and attributes that define ways to make web content and web applications (especially those developed with JavaScript) more accessible to people with disabilities.
+
+Enabling accessibility is a good thing. A bad thing is when it's used badly. The same page warns:
+
+> [The first rule of ARIA](https://www.w3.org/TR/using-aria/#rule1) use is "If you can use a native HTML element or attribute with the semantics and behavior you require already built in, instead of re-purposing an element and adding an ARIA role, state or property to make it accessible, then do so."
+
+With this in mind, I use `AriaRole` as much as I can to identify page elements.
+
+### `HomePage`
+
+I wanted `HomePage` to hold the links I needed to click to get to the different categories, providing methods to click them. That's its single responsibility.
+
+I saw it was a link by inspecting the element in the browser:
+![AriaRole.Link for bread](ariarole-link-for-bread.png)
+
+So I used 
+
+```csharp
+BreadLink = Page.GetByRole(AriaRole.Link, new() { Name = "Bread" });
+```
+
+### `DairyPage` and `BreadPage`
+
+Within a category of product you get a collection containing many a `product-card`. I wanted to uniquely identify the product I needed in the test so I can click that exact product's "Add to Cart" button and "+" button. The locator logic to identify the card sits there as well as the ability to click on the desired locator.
+
+This resulted in a combination of using selectors
+
+```csharp
+CheesePlusButton = Page.Locator("product-card")
+            .Filter(new() { HasText = "Cheese" })
+            .GetByRole(AriaRole.Button, new() { Name = "+"});
+```
+
+There is no AriaRole for "product-card" so I needed to use [`Locator`](https://github.com/microsoft/playwright-dotnet/blob/release-1.46/src/Playwright/Core/Locator.cs) to pass in a string that selects product-card from the DOM. There were many in the Bread category so I [filtered](https://github.com/microsoft/playwright-dotnet/blob/release-1.46/src/Playwright/Core/Locator.cs#191 (This allows you to pass in the optional `LocatorFilterOptions` in `Locator` after you have a collection to match on)) on the one with the text "Cheese". After that, I could use `AriaRole.Button`. 
+
+This is a case where a combination of selector techniques worked. 
+
+### `ShoppingCartPage`
+
+This page's responsibility is to enable picking the right element from the cart to change the quantity of, and to enable checking out.
+
+I explicitly stated in the test that I want less cheese. So I specified I want to remove cheese by passing in "Cheese" inside the test.
+
+```csharp
+await ShoppingCartPage.ClickMinusButtonAsync("Cheese");
+```
+
+This meant I needed `ShoppingCartPage` to be able to find the product only known when the test was running. Thus I implemented 
+
+```csharp
+public async Task ClickMinusButtonAsync(string elementText)
+{
+    var table = Page.GetByRole(AriaRole.Table);
+    var product = table.GetByRole(AriaRole.Row, new () { Name = elementText });
+    MinusButton = product.GetByRole(AriaRole.Button, new () { Name = "-" });
+    await MinusButton.ClickAsync();
+}
+```
+
+What this did was find the table, find the right product in the table, and find the "-" for that element.
+
+![Minus button for cheese](minus-button-for-cheese.png)
+
