@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Playwright;
 using Microsoft.Playwright.NUnit;
 using OrganicShopTrainingProjectPlaywrightTests.Pages;
@@ -23,7 +24,14 @@ public abstract class TestBase
     protected ShoppingCartPage ShoppingCartPage => new(Page);
 
     // Declare BaseUri
-    protected const string BaseUri = "https://agular-test-shop-cb70d.firebaseapp.com";
+    protected static IConfigurationRoot Configuration = null!;
+    protected readonly string BaseUri;
+
+    protected TestBase()
+    {
+        ReadAppSettings();
+        BaseUri = Configuration["BaseUri"]!;
+    }
 
     // Create IPage instance via a Browser instance via Playwright instance
     [OneTimeSetUp]
@@ -47,5 +55,15 @@ public abstract class TestBase
     protected async Task ClickLoginLinkAsync()
     {
         await LoginLink.ClickAsync();
+    }
+
+    private void ReadAppSettings()
+    {
+        // 1. json file must be set to copy always
+        // 2. NuGet: Microsoft.Extensions.Configuration
+        // 3. NuGet: Microsoft.Extensions.Configuration.Json
+        Configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .Build();
     }
 }
